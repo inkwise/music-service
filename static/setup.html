@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音乐服务 - 初始化设置</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    color: #e0e0e0;
+}
+.container {
+    background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
+    border-radius: 20px; padding: 48px; max-width: 560px; width: 90%;
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
+h1 { font-size: 28px; margin-bottom: 8px; color: #fff; text-align: center; }
+.subtitle { text-align: center; color: #888; margin-bottom: 36px; font-size: 14px; }
+.steps { display: flex; margin-bottom: 32px; gap: 8px; }
+.step {
+    flex: 1; text-align: center; padding: 10px; border-radius: 10px;
+    background: rgba(255,255,255,0.03); font-size: 12px; color: #666;
+    transition: all 0.3s;
+}
+.step.active { background: rgba(79, 172, 254, 0.2); color: #4facfe; font-weight: bold; }
+.step.done { background: rgba(76, 217, 100, 0.15); color: #4cd964; }
+.step-num {
+    width: 28px; height: 28px; border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center; margin-bottom: 4px;
+    background: rgba(255,255,255,0.1); font-size: 14px;
+}
+.step.active .step-num { background: #4facfe; color: #fff; }
+.step.done .step-num { background: #4cd964; color: #fff; }
+label { display: block; margin-bottom: 6px; font-size: 13px; color: #aaa; }
+input, select {
+    width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06); color: #fff; font-size: 15px;
+    margin-bottom: 16px; transition: border-color 0.3s; outline: none;
+}
+input:focus, select:focus { border-color: #4facfe; }
+select option { background: #1a1a2e; color: #fff; }
+.selector { display: flex; gap: 12px; margin-bottom: 24px; }
+.option {
+    flex: 1; padding: 20px; border-radius: 12px; text-align: center;
+    border: 2px solid rgba(255,255,255,0.1); cursor: pointer;
+    transition: all 0.3s; background: rgba(255,255,255,0.03);
+}
+.option:hover { border-color: rgba(79,172,254,0.5); background: rgba(79,172,254,0.05); }
+.option.selected { border-color: #4facfe; background: rgba(79,172,254,0.15); }
+.option .icon { font-size: 36px; margin-bottom: 8px; }
+.option .name { font-weight: bold; font-size: 16px; }
+.option .desc { font-size: 12px; color: #888; margin-top: 4px; }
+.form-section { display: none; }
+.form-section.visible { display: block; }
+.form-group { margin-bottom: 16px; }
+.form-group-title { font-size: 14px; font-weight: bold; color: #ccc; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.btn {
+    width: 100%; padding: 14px; border-radius: 10px; border: none;
+    font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s;
+    margin-top: 8px;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #1a1a2e;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,172,254,0.3); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.alert { padding: 14px 18px; border-radius: 10px; margin-top: 16px; font-size: 14px; display: none; }
+.alert-error { background: rgba(255,59,48,0.15); color: #ff3b30; border: 1px solid rgba(255,59,48,0.3); display: block; }
+.alert-success { background: rgba(76,217,100,0.15); color: #4cd964; border: 1px solid rgba(76,217,100,0.3); display: block; }
+.spinner { display: none; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin-left: 8px; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>音乐服务</h1>
+    <p class="subtitle">首次使用，请完成初始化配置</p>
+
+    <div class="steps">
+        <div class="step active" id="step1"><span class="step-num">1</span><br>选择数据库</div>
+        <div class="step" id="step2"><span class="step-num">2</span><br>选择存储</div>
+        <div class="step" id="step3"><span class="step-num">3</span><br>完成配置</div>
+    </div>
+
+    <!-- 步骤1: 数据库选择 -->
+    <div class="form-group-title">数据库类型</div>
+    <div class="selector" id="db-select">
+        <div class="option selected" data-db="sqlite" onclick="selectDB('sqlite')">
+            <div class="icon">🗄️</div>
+            <div class="name">SQLite</div>
+            <div class="desc">轻量级，无需额外安装</div>
+        </div>
+        <div class="option" data-db="mysql" onclick="selectDB('mysql')">
+            <div class="icon">🐬</div>
+            <div class="name">MySQL</div>
+            <div class="desc">高性能，适合生产环境</div>
+        </div>
+    </div>
+
+    <form id="sqlite-form" class="form-section visible">
+        <label>数据库文件路径</label>
+        <input type="text" id="sqlite-path" value="./data/music.db" placeholder="./data/music.db">
+    </form>
+
+    <form id="mysql-form" class="form-section">
+        <label>主机地址</label>
+        <input type="text" id="mysql-host" value="127.0.0.1" placeholder="127.0.0.1">
+        <label>端口</label>
+        <input type="text" id="mysql-port" value="3306" placeholder="3306">
+        <label>用户名</label>
+        <input type="text" id="mysql-user" value="root" placeholder="root">
+        <label>密码</label>
+        <input type="password" id="mysql-password" placeholder="数据库密码">
+        <label>数据库名</label>
+        <input type="text" id="mysql-name" value="music_service" placeholder="music_service">
+    </form>
+
+    <!-- 步骤2: 存储方式选择 -->
+    <div class="form-group-title" style="margin-top:8px;">文件存储方式</div>
+    <div class="selector" id="storage-select">
+        <div class="option selected" data-storage="oss" onclick="selectStorage('oss')">
+            <div class="icon">☁️</div>
+            <div class="name">阿里云 OSS</div>
+            <div class="desc">云端存储，适合生产部署</div>
+        </div>
+        <div class="option" data-storage="local" onclick="selectStorage('local')">
+            <div class="icon">💾</div>
+            <div class="name">本地存储</div>
+            <div class="desc">文件存于服务器本地磁盘</div>
+        </div>
+    </div>
+
+    <form id="oss-form" class="form-section visible">
+        <label>OSS Endpoint</label>
+        <input type="text" id="oss-endpoint" value="oss-cn-hangzhou.aliyuncs.com" placeholder="oss-cn-hangzhou.aliyuncs.com">
+        <label>AccessKey ID</label>
+        <input type="text" id="oss-key-id" placeholder="阿里云 AccessKey ID">
+        <label>AccessKey Secret</label>
+        <input type="password" id="oss-key-secret" placeholder="阿里云 AccessKey Secret">
+        <label>Bucket 名称</label>
+        <input type="text" id="oss-bucket" placeholder="your-bucket-name">
+    </form>
+
+    <form id="local-form" class="form-section">
+        <label>本地存储目录</label>
+        <input type="text" id="local-path" value="./uploads" placeholder="./uploads">
+        <div style="font-size:12px;color:#888;margin-top:-8px;margin-bottom:16px;">
+            上传的音乐文件将保存在此目录下，请确保有写入权限
+        </div>
+    </form>
+
+    <button class="btn btn-primary" id="init-btn" onclick="initialize()">
+        初始化系统<span class="spinner" id="spinner"></span>
+    </button>
+
+    <div id="alert"></div>
+</div>
+
+<script>
+let selectedDB = 'sqlite';
+let selectedStorage = 'oss';
+
+function selectDB(type) {
+    selectedDB = type;
+    document.querySelectorAll('#db-select .option').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`#db-select .option[data-db="${type}"]`).classList.add('selected');
+    document.getElementById('sqlite-form').classList.toggle('visible', type === 'sqlite');
+    document.getElementById('mysql-form').classList.toggle('visible', type === 'mysql');
+    document.getElementById('alert').className = '';
+    document.getElementById('alert').innerHTML = '';
+}
+
+function selectStorage(type) {
+    selectedStorage = type;
+    document.querySelectorAll('#storage-select .option').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`#storage-select .option[data-storage="${type}"]`).classList.add('selected');
+    document.getElementById('oss-form').classList.toggle('visible', type === 'oss');
+    document.getElementById('local-form').classList.toggle('visible', type === 'local');
+    document.getElementById('alert').className = '';
+    document.getElementById('alert').innerHTML = '';
+}
+
+function showAlert(msg, type) {
+    const alert = document.getElementById('alert');
+    alert.className = 'alert alert-' + type;
+    alert.textContent = msg;
+}
+
+async function initialize() {
+    const btn = document.getElementById('init-btn');
+    const spinner = document.getElementById('spinner');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+
+    const payload = {
+        db_type: selectedDB,
+        storage_type: selectedStorage
+    };
+
+    // 数据库配置
+    if (selectedDB === 'sqlite') {
+        payload.db_path = document.getElementById('sqlite-path').value || './data/music.db';
+    } else {
+        payload.db_host = document.getElementById('mysql-host').value || '127.0.0.1';
+        payload.db_port = document.getElementById('mysql-port').value || '3306';
+        payload.db_user = document.getElementById('mysql-user').value || 'root';
+        payload.db_password = document.getElementById('mysql-password').value || '';
+        payload.db_name = document.getElementById('mysql-name').value || 'music_service';
+    }
+
+    // 存储配置
+    if (selectedStorage === 'local') {
+        payload.local_storage_path = document.getElementById('local-path').value || './uploads';
+    } else if (selectedStorage === 'oss') {
+        payload.oss_endpoint = document.getElementById('oss-endpoint').value || '';
+        payload.oss_access_key_id = document.getElementById('oss-key-id').value || '';
+        payload.oss_access_key_secret = document.getElementById('oss-key-secret').value || '';
+        payload.oss_bucket_name = document.getElementById('oss-bucket').value || '';
+    }
+
+    try {
+        const resp = await fetch('/api/v1/setup/initialize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+
+        if (resp.ok) {
+            document.getElementById('step1').classList.add('done');
+            document.getElementById('step2').classList.add('done');
+            document.getElementById('step3').classList.add('done');
+            document.getElementById('step3').classList.add('active');
+
+            if (data.restart_required) {
+                // 配置已保存，等待服务重启后进入正常模式
+                showAlert(data.message, 'success');
+                btn.textContent = '等待服务重启...';
+                const poll = setInterval(async () => {
+                    try {
+                        const st = await (await fetch('/api/v1/setup/status')).json();
+                        if (st.initialized) {
+                            clearInterval(poll);
+                            btn.textContent = '初始化完成';
+                            window.location.href = '/admin/';
+                        }
+                    } catch (e) { /* 服务重启中，连接失败属正常 */ }
+                }, 2000);
+            } else {
+                showAlert(data.message + '。正在进入系统...', 'success');
+                btn.textContent = '初始化完成';
+                setTimeout(() => {
+                    window.location.href = '/admin/';
+                }, 1500);
+            }
+        } else {
+            showAlert(data.error || '初始化失败', 'error');
+            btn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    } catch (err) {
+        showAlert('网络错误: ' + err.message, 'error');
+        btn.disabled = false;
+        spinner.style.display = 'none';
+    }
+}
+
+// 页面加载时检查是否已初始化，并预填配置
+(async function() {
+    try {
+        const resp = await fetch('/api/v1/setup/status');
+        const data = await resp.json();
+        if (data.initialized) {
+            window.location.href = '/admin/';
+            return;
+        }
+        // 预填 OSS 配置
+        if (data.oss_endpoint) document.getElementById('oss-endpoint').value = data.oss_endpoint;
+        if (data.oss_access_key_id) document.getElementById('oss-key-id').value = data.oss_access_key_id;
+        if (data.oss_access_key_secret) document.getElementById('oss-key-secret').value = data.oss_access_key_secret;
+        if (data.oss_bucket_name) document.getElementById('oss-bucket').value = data.oss_bucket_name;
+        // 预填 DB 配置
+        if (data.db_path) document.getElementById('sqlite-path').value = data.db_path;
+        if (data.db_host) document.getElementById('mysql-host').value = data.db_host;
+        if (data.db_port) document.getElementById('mysql-port').value = data.db_port;
+        if (data.db_user) document.getElementById('mysql-user').value = data.db_user;
+        if (data.db_name) document.getElementById('mysql-name').value = data.db_name;
+        // 预填存储类型和本地路径
+        if (data.storage_type) selectStorage(data.storage_type);
+        if (data.local_storage_path) document.getElementById('local-path').value = data.local_storage_path;
+        if (data.db_type) selectDB(data.db_type);
+    } catch(e) {}
+})();
+</script>
+</body>
+</html>

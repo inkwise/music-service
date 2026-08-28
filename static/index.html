@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐管理面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .nav button.active {
+            background: white;
+            color: #667eea;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .btn-danger {
+            background: #e53e3e;
+        }
+        .btn-danger:hover {
+            background: #c53030;
+        }
+        .btn-success {
+            background: #48bb78;
+        }
+        .btn-success:hover {
+            background: #38a169;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .table th {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+        .table tr:hover {
+            background: #f7fafc;
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 200px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .pagination button:hover {
+            background: #f0f0f0;
+        }
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+        .sortable-item {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: grab;
+        }
+        .sortable-item:active {
+            cursor: grabbing;
+        }
+        .sortable-item.dragging {
+            opacity: 0.4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .sortable-item.drag-over {
+            border-top: 3px solid #667eea;
+            background: #f0f0ff;
+        }
+        .drag-handle {
+            cursor: grab;
+            color: #999;
+            font-size: 20px;
+            padding: 0 8px;
+            user-select: none;
+            line-height: 1;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .reorder-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success {
+            background: #48bb78;
+        }
+        .toast.error {
+            background: #e53e3e;
+        }
+        .toast.info {
+            background: #667eea;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .music-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .music-item:last-child {
+            border-bottom: none;
+        }
+        .music-info {
+            flex: 1;
+        }
+        .music-info h4 {
+            margin-bottom: 5px;
+        }
+        .music-info p {
+            color: #666;
+            font-size: 13px;
+        }
+        .music-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .music-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .table {
+                font-size: 13px;
+            }
+            .table th,
+            .table td {
+                padding: 8px;
+            }
+            .search-bar {
+                flex-direction: column;
+            }
+            .search-bar input {
+                min-width: auto;
+            }
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎵 音乐管理面板</h1>
+            <div class="nav">
+                <button class="active" onclick="showSection('music')">音乐管理</button>
+                <button onclick="showSection('playlists')">歌单管理</button>
+                <button onclick="showSection('artists')">艺术家管理</button>
+                <button onclick="showSection('upload')">上传音乐</button>
+                <button onclick="showSection('profile')">个人中心</button>
+                <button onclick="showSection('settings')">设置</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 音乐管理 -->
+        <div id="section-music" class="section active">
+            <div class="card">
+                <h2>音乐列表</h2>
+                <div class="search-bar">
+                    <input type="text" id="music-search" placeholder="搜索音乐标题、艺术家、专辑..." oninput="searchMusic()">
+                    <select id="music-genre" onchange="searchMusic()">
+                        <option value="">所有流派</option>
+                        <option value="pop">流行</option>
+                        <option value="rock">摇滚</option>
+                        <option value="jazz">爵士</option>
+                        <option value="classical">古典</option>
+                        <option value="electronic">电子</option>
+                        <option value="hip-hop">嘻哈</option>
+                        <option value="r&b">R&B</option>
+                        <option value="folk">民谣</option>
+                        <option value="other">其他</option>
+                    </select>
+                    <select id="music-format" onchange="searchMusic()">
+                        <option value="">所有格式</option>
+                        <option value="mp3">MP3</option>
+                        <option value="flac">FLAC</option>
+                        <option value="wav">WAV</option>
+                        <option value="m4a">M4A</option>
+                        <option value="ogg">OGG</option>
+                    </select>
+                    <select id="music-sort" onchange="searchMusic()">
+                        <option value="created_at">按时间排序</option>
+                        <option value="title">按标题排序</option>
+                        <option value="duration">按时长排序</option>
+                        <option value="bitrate">按比特率排序</option>
+                    </select>
+                    <button class="btn" onclick="searchMusic()">搜索</button>
+                </div>
+                <div id="music-list"></div>
+                <div id="music-pagination" class="pagination"></div>
+            </div>
+        </div>
+
+        <!-- 歌单管理 -->
+        <div id="section-playlists" class="section">
+            <div class="card">
+                <h2>我的歌单</h2>
+                <button class="btn" onclick="showCreatePlaylistModal()">创建歌单</button>
+                <div id="playlist-list"></div>
+            </div>
+        </div>
+
+        <!-- 艺术家管理 -->
+        <div id="section-artists" class="section">
+            <div class="card">
+                <h2>艺术家列表</h2>
+                <div id="artist-list"></div>
+            </div>
+        </div>
+
+        <!-- 上传音乐 -->
+        <div id="section-upload" class="section">
+            <div class="card">
+                <h2>上传音乐</h2>
+                <form id="upload-form" onsubmit="uploadMusic(event)">
+                    <div class="form-group">
+                        <label>选择音频文件</label>
+                        <input type="file" id="music-file" accept=".mp3,.wav,.flac,.m4a,.ogg,.wma" multiple required>
+                    </div>
+                    <button type="submit" class="btn btn-success">上传</button>
+                </form>
+                <div id="upload-progress" style="display:none; margin-top:15px;">
+                    <div style="background:#e2e8f0; border-radius:8px; height:20px;">
+                        <div id="progress-bar" style="background:#667eea; height:100%; border-radius:8px; width:0%; transition:width 0.3s;"></div>
+                    </div>
+                    <p id="progress-text" style="margin-top:5px; color:#666;">上传中...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人中心 -->
+        <div id="section-profile" class="section">
+            <div class="card">
+                <h2>个人中心</h2>
+                <div id="profile-info"></div>
+            </div>
+        </div>
+
+        <!-- 设置 -->
+        <div id="section-settings" class="section">
+            <div class="card">
+                <h2>系统设置</h2>
+                <!-- 存储切换 -->
+                <div style="margin-top:20px; padding:20px; border:1px solid #e0e0e0; border-radius:8px;">
+                    <h3 style="margin-bottom:12px;">💾 存储方式</h3>
+                    <p style="color:#666; margin-bottom:6px;">当前存储：<strong id="current-storage-label">加载中...</strong></p>
+                    <p style="color:#888; font-size:13px; margin-bottom:16px;">切换后立即生效，之后的上传和访问都使用新的存储后端。已有歌曲不受影响（OSS 歌曲需 OSS 存储才能播放，本地歌曲需本地存储才能播放）。</p>
+                    <button class="btn" id="switch-storage-btn" onclick="switchStorage()" style="background:#667eea; color:#fff;">
+                        切换到 <span id="switch-storage-target">...</span>
+                    </button>
+                </div>
+
+                <div style="margin-top:20px; padding:20px; border:1px solid #e53e3e; border-radius:8px; background:#fff5f5;">
+                    <h3 style="color:#e53e3e; margin-bottom:12px;">⚠ 重置服务器</h3>
+                    <p style="color:#666; margin-bottom:16px;">重置将删除初始化标记，服务器回到设置模式。请谨慎操作。</p>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="reset-clear-db" style="width:18px; height:18px;">
+                            <span>清除数据库（删除所有歌曲、歌手、歌单、用户数据）</span>
+                        </label>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="reset-clear-storage" style="width:18px; height:18px;">
+                            <span>清除存储文件（删除所有上传的歌曲、封面、歌词文件）</span>
+                        </label>
+                    </div>
+                    <button class="btn" style="background:#e53e3e; color:#fff;" onclick="showResetConfirm()">
+                        重置服务器
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建歌单模态框 -->
+    <div id="create-playlist-modal" class="modal">
+        <div class="modal-content">
+            <h2>创建歌单</h2>
+            <form onsubmit="createPlaylist(event)">
+                <div class="form-group">
+                    <label>歌单名称</label>
+                    <input type="text" id="playlist-name" required>
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="playlist-description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeModal('create-playlist-modal')">取消</button>
+                    <button type="submit" class="btn btn-success">创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 歌单详情模态框 -->
+    <div id="playlist-detail-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="playlist-detail-title">歌单详情</h2>
+            <div id="playlist-detail-content"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('playlist-detail-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 播放器悬浮窗 -->
+    <div id="player-bar" style="display:none; position:fixed; bottom:0; left:0; right:0; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:10px 20px; z-index:3000; box-shadow:0 -2px 10px rgba(0,0,0,0.3);">
+        <div style="display:flex; align-items:center; gap:15px; max-width:1200px; margin:0 auto;">
+            <div style="flex:1; min-width:0;">
+                <div id="player-title" style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未播放</div>
+                <div id="player-artist" style="font-size:12px; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            </div>
+            <audio id="audio-player" controls style="flex:2; max-width:400px; height:40px;"></audio>
+            <button onclick="closePlayer()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">✕</button>
+        </div>
+    </div>
+
+    <!-- 音乐编辑模态框 -->
+    <div id="edit-music-modal" class="modal">
+        <div class="modal-content" style="max-width:650px;">
+            <h2>编辑音乐信息</h2>
+            <form onsubmit="saveMusicEdit(event)">
+                <input type="hidden" id="edit-music-id">
+                <div class="form-group">
+                    <label>标题</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="form-group">
+                    <label>艺术家 (多个用 / 或 , 分隔)</label>
+                    <input type="text" id="edit-artist" placeholder="歌手A / 歌手B">
+                </div>
+                <div class="form-group">
+                    <label>专辑</label>
+                    <input type="text" id="edit-album">
+                </div>
+                <div class="form-group">
+                    <label>流派</label>
+                    <input type="text" id="edit-genre">
+                </div>
+                <div class="form-group">
+                    <label>歌词文本</label>
+                    <textarea id="edit-lyrics" rows="4" placeholder="输入歌词内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>上传歌词文件 (.lrc/.txt)</label>
+                    <input type="file" id="edit-lyrics-file" accept=".lrc,.txt" style="font-size:13px;">
+                </div>
+                <div class="form-group">
+                    <label>封面图片</label>
+                    <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+                        <img id="edit-cover-preview" style="width:80px;height:80px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none;">
+                        <input type="file" id="edit-cover-file" accept=".jpg,.jpeg,.png,.gif,.webp" style="font-size:13px;">
+                    </div>
+                </div>
+                <div id="edit-file-info" style="margin-bottom:15px; padding:10px; background:#f7fafc; border-radius:8px; font-size:13px; color:#666;"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeModal('edit-music-modal')">取消</button>
+                    <button type="submit" class="btn btn-success">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加歌曲到歌单模态框 -->
+    <div id="add-to-playlist-modal" class="modal">
+        <div class="modal-content">
+            <h2>添加到歌单</h2>
+            <div id="playlist-select-list"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('add-to-playlist-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置确认模态框 -->
+    <div id="reset-confirm-modal" class="modal">
+        <div class="modal-content" style="max-width:420px;">
+            <h2 style="color:#e53e3e;">⚠ 确认重置服务器</h2>
+            <div style="margin:16px 0; padding:12px; background:#fff5f5; border-radius:8px; font-size:14px; line-height:1.8;">
+                <div id="reset-summary"></div>
+                <div style="margin-top:12px; font-weight:bold; color:#e53e3e;">此操作不可撤销！</div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:14px; color:#666;">
+                    <input type="checkbox" id="reset-confirm-check" style="width:16px; height:16px;">
+                    我确认要重置服务器
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('reset-confirm-modal')">取消</button>
+                <button class="btn" id="reset-confirm-btn" style="background:#e53e3e; color:#fff;" disabled onclick="doReset()">
+                    确认重置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API配置
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let currentPage = 1;
+        let currentSection = 'music';
+        let currentPlaylistId = null;
+        let currentMusicId = null;
+        let playlistSongOrder = [];
+
+        // 检查登录状态
+        if (!token) {
+            showLogin();
+        } else {
+            verifyToken();
+        }
+
+        function showLogin() {
+            document.body.innerHTML = `
+                <div style="display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f5f5f5;">
+                    <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); max-width:400px; width:90%;">
+                        <h1 style="text-align:center; margin-bottom:30px; color:#667eea;">🎵 音乐管理</h1>
+                        <div id="login-form">
+                            <div class="form-group">
+                                <label>用户名</label>
+                                <input type="text" id="login-username" placeholder="请输入用户名" required>
+                            </div>
+                            <div class="form-group">
+                                <label>密码</label>
+                                <input type="password" id="login-password" placeholder="请输入密码" required>
+                            </div>
+                            <button class="btn" style="width:100%;" onclick="login()">登录</button>
+                            <p style="text-align:center; margin-top:15px;">
+                                还没有账号？<a href="#" onclick="showRegister()">注册</a>
+                            </p>
+                        </div>
+                        <div id="register-form" style="display:none;">
+                            <div class="form-group">
+                                <label>用户名</label>
+                                <input type="text" id="register-username" placeholder="3-50个字符" required>
+                            </div>
+                            <div class="form-group">
+                                <label>密码</label>
+                                <input type="password" id="register-password" placeholder="至少6个字符" required>
+                            </div>
+                            <div class="form-group">
+                                <label>邮箱（可选）</label>
+                                <input type="email" id="register-email" placeholder="example@email.com">
+                            </div>
+                            <button class="btn" style="width:100%;" onclick="register()">注册</button>
+                            <p style="text-align:center; margin-top:15px;">
+                                已有账号？<a href="#" onclick="showLoginForm()">登录</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+        }
+
+        async function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    location.reload();
+                } else {
+                    showToast(data.error || '登录失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const email = document.getElementById('register-email').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    showToast('注册成功', 'success');
+                    location.reload();
+                } else {
+                    showToast(data.error || '注册失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                const response = await fetch(`${API_BASE}/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    localStorage.removeItem('token');
+                    showLogin();
+                }
+            } catch (error) {}
+        }
+
+        function showSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`section-${section}`).classList.add('active');
+            
+            document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.nav button[onclick*="${section}"]`).classList.add('active');
+            
+            switch(section) {
+                case 'music':
+                    searchMusic();
+                    break;
+                case 'playlists':
+                    loadPlaylists();
+                    break;
+                case 'artists':
+                    loadArtists();
+                    break;
+                case 'profile':
+                    loadProfile();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // 音乐管理
+        async function searchMusic(page = 1) {
+            currentPage = page;
+            const keyword = document.getElementById('music-search').value;
+            const genre = document.getElementById('music-genre').value;
+            const format = document.getElementById('music-format').value;
+            const sortBy = document.getElementById('music-sort').value;
+            
+            const params = new URLSearchParams({
+                page: page,
+                page_size: 20,
+                keyword: keyword,
+                genre: genre,
+                format: format,
+                sort_by: sortBy,
+                sort_order: 'desc'
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/music/list?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    renderMusicList(data.data, data.pagination);
+                } else {
+                    showToast(data.error || '查询失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function renderMusicList(musics, pagination) {
+            const container = document.getElementById('music-list');
+            
+            if (!musics || musics.length === 0) {
+                container.innerHTML = '<div class="empty">暂无音乐</div>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th></th><th>标题</th><th>艺术家</th><th>专辑</th><th>时长</th><th>格式</th><th>操作</th></tr></thead><tbody>';
+
+            musics.forEach(music => {
+                const duration = music.duration ? `${Math.floor(music.duration / 60)}:${String(Math.floor(music.duration % 60)).padStart(2, '0')}` : '未知';
+                const artistName = music.artists && music.artists.length > 0 ? music.artists.map(a => a.name).join(', ') : '未知';
+                const cover = music.cover_url ? `<img src="${music.cover_url}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;">` : '<span style="color:#ccc;">🎵</span>';
+
+                html += `
+                    <tr>
+                        <td>${cover}</td>
+                        <td>${music.title}</td>
+                        <td>${artistName}</td>
+                        <td>${music.album || '-'}</td>
+                        <td>${duration}</td>
+                        <td>${music.format || '-'}</td>
+                        <td>
+                            <button class="btn" onclick="playMusic(${music.id})">播放</button>
+                            <button class="btn" onclick="editMusic(${music.id})">编辑</button>
+                            <button class="btn" onclick="showAddToPlaylist(${music.id})">添加到歌单</button>
+                            <button class="btn btn-danger" onclick="deleteMusic(${music.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            const paginationContainer = document.getElementById('music-pagination');
+            if (pagination.total_pages > 1) {
+                let paginationHtml = '';
+                for (let i = 1; i <= pagination.total_pages; i++) {
+                    paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" onclick="searchMusic(${i})">${i}</button>`;
+                }
+                paginationContainer.innerHTML = paginationHtml;
+            } else {
+                paginationContainer.innerHTML = '';
+            }
+        }
+
+        // 播放器功能
+        async function playMusic(id) {
+            try {
+                const response = await fetch(`${API_BASE}/music/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.music) {
+                    const music = data.music;
+                    const streamUrl = `${API_BASE}/music/${id}/stream`; // 无需认证
+                    
+                    document.getElementById('player-bar').style.display = 'block';
+                    document.getElementById('player-title').textContent = music.title || '未知标题';
+                    document.getElementById('player-artist').textContent = music.artists && music.artists.length > 0 ? music.artists.map(a => a.name).join(', ') : '未知艺术家';
+                    
+                    const audio = document.getElementById('audio-player');
+                    audio.src = streamUrl;
+                    audio.play().catch(e => showToast('播放失败: ' + e.message, 'error'));
+                } else {
+                    showToast('无法获取播放链接', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function closePlayer() {
+            const audio = document.getElementById('audio-player');
+            audio.pause();
+            audio.src = '';
+            document.getElementById('player-bar').style.display = 'none';
+        }
+
+        // 编辑音乐
+        async function editMusic(id) {
+            try {
+                const response = await fetch(`${API_BASE}/music/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.music) {
+                    const music = data.music;
+                    document.getElementById('edit-music-id').value = music.id;
+                    document.getElementById('edit-title').value = music.title || '';
+                    document.getElementById('edit-artist').value = music.artists && music.artists.length > 0 ? music.artists.map(a => a.name).join(' / ') : '';
+                    document.getElementById('edit-album').value = music.album || '';
+                    document.getElementById('edit-genre').value = music.genre || '';
+                    document.getElementById('edit-lyrics').value = music.lyrics || '';
+
+                    // 封面预览
+                    const coverPreview = document.getElementById('edit-cover-preview');
+                    if (music.cover_url) {
+                        coverPreview.src = music.cover_url;
+                        coverPreview.style.display = 'block';
+                    } else {
+                        coverPreview.style.display = 'none';
+                    }
+                    // 清空文件选择
+                    document.getElementById('edit-cover-file').value = '';
+                    document.getElementById('edit-lyrics-file').value = '';
+
+                    // 显示文件信息和外部URL
+                    const fileInfo = document.getElementById('edit-file-info');
+                    const size = music.size ? (music.size / 1024 / 1024).toFixed(2) + ' MB' : '未知';
+                    const channels = music.channel_count ? music.channel_count + ' 声道' : (music.channels ? music.channels + ' 声道' : '未知');
+                    fileInfo.innerHTML = `
+                        <div>文件大小: ${size} | 声道: ${channels} | 码率: ${music.bitrate || '-'} kbps</div>
+                        <div>采样率: ${music.sample_rate || '-'} Hz | 格式: ${music.format || '-'} | 编码: ${music.codec || '-'}</div>
+                        ${music.download_url ? `<div><a href="${music.download_url}" target="_blank">下载URL (代理)</a></div>` : ''}
+                        ${music.stream_url ? `<div><a href="${music.stream_url}" target="_blank">播放URL (流媒体)</a></div>` : ''}
+                    `;
+
+                    document.getElementById('edit-music-modal').classList.add('active');
+                } else {
+                    showToast('获取音乐信息失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function saveMusicEdit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('edit-music-id').value;
+            const title = document.getElementById('edit-title').value;
+            const artistStr = document.getElementById('edit-artist').value;
+            const album = document.getElementById('edit-album').value;
+            const genre = document.getElementById('edit-genre').value;
+            const lyrics = document.getElementById('edit-lyrics').value;
+
+            // 解析艺术家名（支持/、,、;等分隔）
+            const artists = artistStr ? artistStr.split(/[\/,;、]/).map(s => s.trim()).filter(s => s) : [];
+
+            try {
+                // 更新基本信息
+                const response = await fetch(`${API_BASE}/music/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, artists, album, genre, lyrics })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    showToast(data.error || '更新失败', 'error');
+                    return;
+                }
+
+                // 上传封面（如果有选择文件）
+                const coverFile = document.getElementById('edit-cover-file').files[0];
+                if (coverFile) {
+                    const formData = new FormData();
+                    formData.append('cover', coverFile);
+                    await fetch(`${API_BASE}/music/${id}/cover`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                }
+
+                // 上传歌词文件（如果有选择）
+                const lyricsFile = document.getElementById('edit-lyrics-file').files[0];
+                if (lyricsFile) {
+                    const formData = new FormData();
+                    formData.append('lyrics', lyricsFile);
+                    await fetch(`${API_BASE}/music/${id}/lyrics`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                }
+
+                showToast('更新成功', 'success');
+                closeModal('edit-music-modal');
+                searchMusic(currentPage);
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 添加到歌单
+        async function showAddToPlaylist(musicId) {
+            currentMusicId = musicId;
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlists`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.data) {
+                    const container = document.getElementById('playlist-select-list');
+                    if (data.data.length === 0) {
+                        container.innerHTML = '<p class="empty">暂无歌单，请先创建</p>';
+                    } else {
+                        let html = '';
+                        data.data.forEach(playlist => {
+                            html += `
+                                <div class="music-item" style="cursor:pointer;" onclick="addToPlaylist(${playlist.id}, ${musicId})">
+                                    <div class="music-info">
+                                        <h4>${playlist.name}</h4>
+                                        <p>${playlist.description || '暂无描述'}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                    document.getElementById('add-to-playlist-modal').classList.add('active');
+                } else {
+                    showToast('获取歌单列表失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function addToPlaylist(playlistId, musicId) {
+            try {
+                const response = await fetch(`${API_BASE}/playlists/${playlistId}/music`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ music_id: musicId })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('添加成功', 'success');
+                    closeModal('add-to-playlist-modal');
+                } else {
+                    showToast(data.error || '添加失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function deleteMusic(id) {
+            if (!confirm('确定要删除这首音乐吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/music/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('删除成功', 'success');
+                    searchMusic(currentPage);
+                } else {
+                    showToast(data.error || '删除失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 上传音乐（分批，每批最多3个文件）
+        async function uploadMusic(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('music-file');
+            const files = Array.from(fileInput.files);
+
+            if (files.length === 0) {
+                showToast('请选择文件', 'error');
+                return;
+            }
+
+            const BATCH_SIZE = 3;
+            const batches = [];
+            for (let i = 0; i < files.length; i += BATCH_SIZE) {
+                batches.push(files.slice(i, i + BATCH_SIZE));
+            }
+
+            const progressDiv = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            progressDiv.style.display = 'block';
+
+            let totalSuccess = 0;
+            let totalFail = 0;
+            let totalDup = 0;
+            const failures = [];
+            const duplicates = [];
+
+            for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+                const batch = batches[batchIdx];
+                const batchNum = batchIdx + 1;
+                progressText.textContent = `上传中... 第 ${batchNum}/${batches.length} 批 (${batch.length}个文件)`;
+                progressBar.style.width = `${(batchIdx / batches.length) * 100}%`;
+
+                const formData = new FormData();
+                batch.forEach(f => formData.append('files', f));
+
+                try {
+                    const response = await fetch(`${API_BASE}/music/upload/batch`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        data.results.forEach(r => {
+                            if (r.success) { totalSuccess++; }
+                            else if (r.duplicate) { totalDup++; duplicates.push(r.filename); }
+                            else { totalFail++; failures.push(`${r.filename}: ${r.error}`); }
+                        });
+                    } else {
+                        totalFail += batch.length;
+                        failures.push(`第${batchNum}批: ${data.error || '请求失败'}`);
+                    }
+                } catch (error) {
+                    totalFail += batch.length;
+                    failures.push(`第${batchNum}批: 网络错误`);
+                }
+            }
+
+            progressBar.style.width = '100%';
+            progressText.textContent = '上传完成';
+
+            let msg = `上传完成: ${totalSuccess}成功`;
+            if (totalDup > 0) msg += `, ${totalDup}重复跳过`;
+            if (totalFail > 0) msg += `, ${totalFail}失败`;
+            const isPartFail = totalFail > 0 && totalSuccess > 0;
+            showToast(msg, totalSuccess === 0 && totalDup === 0 ? 'error' : 'success');
+            if (duplicates.length > 0) {
+                showToast(`重复跳过: ${duplicates.join(', ')}`, 'success');
+            }
+            document.getElementById('upload-form').reset();
+            setTimeout(() => { progressDiv.style.display = 'none'; }, 1500);
+            searchMusic();
+        }
+
+        // 歌单管理
+        async function loadPlaylists() {
+            try {
+                const response = await fetch(`${API_BASE}/playlists`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    renderPlaylists(data.data);
+                } else {
+                    showToast(data.error || '查询失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function renderPlaylists(playlists) {
+            const container = document.getElementById('playlist-list');
+            
+            if (!playlists || playlists.length === 0) {
+                container.innerHTML = '<div class="empty">暂无歌单</div>';
+                return;
+            }
+            
+            let html = '';
+            playlists.forEach(playlist => {
+                html += `
+                    <div class="music-item">
+                        <div class="music-info">
+                            <h4>${playlist.name}</h4>
+                            <p>${playlist.description || '暂无描述'}</p>
+                        </div>
+                        <div class="music-actions">
+                            <button class="btn" onclick="showPlaylistDetail(${playlist.id})">查看</button>
+                            <button class="btn btn-danger" onclick="deletePlaylist(${playlist.id})">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showCreatePlaylistModal() {
+            document.getElementById('create-playlist-modal').classList.add('active');
+        }
+
+        async function createPlaylist(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('playlist-name').value;
+            const description = document.getElementById('playlist-description').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlists`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, description })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('创建成功', 'success');
+                    closeModal('create-playlist-modal');
+                    loadPlaylists();
+                } else {
+                    showToast(data.error || '创建失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function showPlaylistDetail(id) {
+            currentPlaylistId = id;
+            try {
+                // 获取歌单基本信息
+                const playlistResp = await fetch(`${API_BASE}/playlists/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const playlistData = await playlistResp.json();
+                if (!playlistResp.ok) {
+                    showToast(playlistData.error || '查询失败', 'error');
+                    return;
+                }
+                const playlist = playlistData.playlist;
+                document.getElementById('playlist-detail-title').textContent = playlist.name;
+
+                // 获取歌曲列表（含 sort_order）
+                const songsResp = await fetch(`${API_BASE}/playlists/${id}/music`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const songsData = await songsResp.json();
+
+                let html = `<p>${playlist.description || '暂无描述'}</p>`;
+                html += '<h3 style="margin-top:15px;">歌曲列表</h3>';
+
+                if (songsData.songs && songsData.songs.length > 0) {
+                    playlistSongOrder = songsData.songs.map(s => s.id);
+
+                    html += '<div id="playlist-songs-container">';
+                    songsData.songs.forEach((music, index) => {
+                        const artistName = music.artists && music.artists.length > 0 ? music.artists.map(a => a.name).join(', ') : '未知';
+                        html += `
+                            <div class="music-item sortable-item" draggable="true" data-music-id="${music.id}" data-index="${index}"
+                                 ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
+                                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                                <span class="drag-handle" title="拖拽排序">⋮⋮</span>
+                                <div class="music-info">
+                                    <h4>${music.title}</h4>
+                                    <p>${artistName} - ${music.album || '未知专辑'}</p>
+                                </div>
+                                <div class="music-actions">
+                                    <button class="btn" onclick="playMusic(${music.id})">播放</button>
+                                    <button class="btn btn-danger" onclick="removeFromPlaylist(${id}, ${music.id})">移除</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    html += `
+                        <div class="reorder-actions">
+                            <span style="color:#999;font-size:13px;line-height:36px;">提示：拖拽 ⋮⋮ 图标调整歌曲顺序</span>
+                            <button class="btn btn-success" id="save-order-btn" style="display:none;" onclick="savePlaylistOrder()">保存排序</button>
+                        </div>
+                    `;
+                } else {
+                    html += '<p class="empty">暂无歌曲</p>';
+                }
+
+                document.getElementById('playlist-detail-content').innerHTML = html;
+                document.getElementById('playlist-detail-modal').classList.add('active');
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 拖拽排序处理函数
+        let draggedItem = null;
+        let originalOrder = [];
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            originalOrder = [...playlistSongOrder];
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.musicId);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedItem = null;
+            // 清除所有 drag-over 状态
+            document.querySelectorAll('.sortable-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+            // 如果顺序有变化，显示保存按钮
+            const currentOrder = Array.from(document.querySelectorAll('#playlist-songs-container .sortable-item'))
+                .map(el => parseInt(el.dataset.musicId));
+            const orderChanged = JSON.stringify(currentOrder) !== JSON.stringify(originalOrder);
+            const saveBtn = document.getElementById('save-order-btn');
+            if (saveBtn) {
+                saveBtn.style.display = orderChanged ? 'inline-block' : 'none';
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== draggedItem) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+
+            if (this === draggedItem) return;
+
+            const container = document.getElementById('playlist-songs-container');
+            const items = [...container.querySelectorAll('.sortable-item')];
+            const fromIndex = items.indexOf(draggedItem);
+            const toIndex = items.indexOf(this);
+
+            if (fromIndex < toIndex) {
+                container.insertBefore(draggedItem, this.nextSibling);
+            } else {
+                container.insertBefore(draggedItem, this);
+            }
+
+            // 更新 playlistSongOrder
+            playlistSongOrder = [...container.querySelectorAll('.sortable-item')]
+                .map(el => parseInt(el.dataset.musicId));
+
+            // 显示保存按钮
+            const saveBtn = document.getElementById('save-order-btn');
+            if (saveBtn) {
+                saveBtn.style.display = 'inline-block';
+            }
+        }
+
+        async function savePlaylistOrder() {
+            const btn = document.getElementById('save-order-btn');
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/playlists/${currentPlaylistId}/music/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ music_ids: playlistSongOrder })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('排序保存成功', 'success');
+                    btn.style.display = 'none';
+                    originalOrder = [...playlistSongOrder];
+                } else {
+                    showToast(data.error || '保存排序失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '保存排序';
+            }
+        }
+
+        async function removeFromPlaylist(playlistId, musicId) {
+            if (!confirm('确定要从歌单中移除这首歌曲吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlists/${playlistId}/music/${musicId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('移除成功', 'success');
+                    showPlaylistDetail(playlistId);
+                } else {
+                    showToast(data.error || '移除失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        async function deletePlaylist(id) {
+            if (!confirm('确定要删除这个歌单吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/playlists/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('删除成功', 'success');
+                    loadPlaylists();
+                } else {
+                    showToast(data.error || '删除失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 艺术家管理
+        async function loadArtists() {
+            try {
+                const response = await fetch(`${API_BASE}/artists/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    renderArtists(data.data);
+                } else {
+                    showToast(data.error || '查询失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function renderArtists(artists) {
+            const container = document.getElementById('artist-list');
+            
+            if (!artists || artists.length === 0) {
+                container.innerHTML = '<div class="empty">暂无艺术家</div>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th>名称</th><th>描述</th><th>操作</th></tr></thead><tbody>';
+            
+            artists.forEach(artist => {
+                html += `
+                    <tr>
+                        <td>${artist.name}</td>
+                        <td>${artist.description || '-'}</td>
+                        <td><button class="btn" onclick="showArtistDetail(${artist.id})">查看</button></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function showArtistDetail(id) {
+            try {
+                const response = await fetch(`${API_BASE}/artists/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    const artist = data.artist;
+                    let html = `<h3>${artist.name}</h3>`;
+                    html += `<p>${artist.description || '暂无描述'}</p>`;
+                    
+                    if (artist.musics && artist.musics.length > 0) {
+                        html += '<h4 style="margin-top:15px;">歌曲列表</h4>';
+                        html += '<div>';
+                        artist.musics.forEach(music => {
+                            html += `
+                                <div class="music-item">
+                                    <div class="music-info">
+                                        <h4>${music.title}</h4>
+                                        <p>${music.album || '未知专辑'}</p>
+                                    </div>
+                                    <div class="music-actions">
+                                        <button class="btn" onclick="playMusic(${music.id})">播放</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    document.getElementById('playlist-detail-title').textContent = artist.name;
+                    document.getElementById('playlist-detail-content').innerHTML = html;
+                    document.getElementById('playlist-detail-modal').classList.add('active');
+                } else {
+                    showToast(data.error || '查询失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 个人中心
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    const user = data.user;
+                    document.getElementById('profile-info').innerHTML = `
+                        <div class="music-item">
+                            <div class="music-info">
+                                <h4>用户名: ${user.username}</h4>
+                                <p>邮箱: ${user.email || '未设置'}</p>
+                                <p>注册时间: ${new Date(user.created_at).toLocaleString()}</p>
+                            </div>
+                            <div class="music-actions">
+                                <button class="btn btn-danger" onclick="logout()">退出登录</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    showToast(data.error || '查询失败', 'error');
+                }
+            } catch (error) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            location.reload();
+        }
+
+        // 工具函数
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            if (token) {
+                searchMusic();
+            }
+            // 重置确认复选框监听
+            const confirmCheck = document.getElementById('reset-confirm-check');
+            const confirmBtn = document.getElementById('reset-confirm-btn');
+            if (confirmCheck && confirmBtn) {
+                confirmCheck.addEventListener('change', function() {
+                    confirmBtn.disabled = !this.checked;
+                });
+            }
+        });
+
+        // 加载设置信息
+        async function loadSettings() {
+            try {
+                const resp = await fetch(`${API_BASE}/setup/status`);
+                const data = await resp.json();
+                const label = document.getElementById('current-storage-label');
+                const target = document.getElementById('switch-storage-target');
+                const btn = document.getElementById('switch-storage-btn');
+
+                if (label) label.textContent = data.storage_type === 'local' ? '本地存储' : '阿里云 OSS';
+                if (target) target.textContent = data.storage_type === 'local' ? '阿里云 OSS' : '本地存储';
+                if (btn) {
+                    btn.style.background = data.storage_type === 'local' ? '#667eea' : '#48bb78';
+                }
+            } catch (err) {
+                console.error('加载设置失败:', err);
+            }
+        }
+
+        // 切换存储方式
+        async function switchStorage() {
+            const label = document.getElementById('current-storage-label');
+            const currentType = label ? (label.textContent === '本地存储' ? 'local' : 'oss') : 'oss';
+            const newType = currentType === 'local' ? 'oss' : 'local';
+            const newLabel = newType === 'local' ? '本地存储' : '阿里云 OSS';
+
+            if (!confirm(`确定要切换到「${newLabel}」吗？\n\n切换后立即生效，之后的上传和访问都使用新的存储后端。`)) {
+                return;
+            }
+
+            const btn = document.getElementById('switch-storage-btn');
+            btn.disabled = true;
+            btn.textContent = '切换中...';
+
+            try {
+                const resp = await fetch(`${API_BASE}/setup/storage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ storage_type: newType })
+                });
+                const data = await resp.json();
+
+                if (resp.ok) {
+                    showToast(data.message || '存储切换成功', 'success');
+                    loadSettings();
+                } else {
+                    showToast(data.error || '切换失败', 'error');
+                }
+            } catch (err) {
+                showToast('网络错误: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '切换到';
+                loadSettings();
+            }
+        }
+
+        // 显示重置确认对话框
+        function showResetConfirm() {
+            const clearDB = document.getElementById('reset-clear-db').checked;
+            const clearStorage = document.getElementById('reset-clear-storage').checked;
+
+            if (!clearDB && !clearStorage) {
+                document.getElementById('reset-summary').innerHTML = '将<strong>仅</strong>删除初始化标记，数据库和存储文件<strong>不会</strong>被清除。';
+            } else {
+                let summary = '将执行以下操作：<ul style="padding-left:18px;margin-top:6px;">';
+                summary += '<li>删除初始化标记</li>';
+                if (clearDB) summary += '<li>清除所有数据库记录（歌曲、歌手、歌单、用户）</li>';
+                if (clearStorage) summary += '<li>清除所有存储文件（歌曲、封面、歌词）</li>';
+                summary += '</ul>';
+                document.getElementById('reset-summary').innerHTML = summary;
+            }
+
+            document.getElementById('reset-confirm-check').checked = false;
+            document.getElementById('reset-confirm-btn').disabled = true;
+            document.getElementById('reset-confirm-modal').classList.add('active');
+        }
+
+        // 执行重置
+        async function doReset() {
+            const clearDB = document.getElementById('reset-clear-db').checked;
+            const clearStorage = document.getElementById('reset-clear-storage').checked;
+            const btn = document.getElementById('reset-confirm-btn');
+            btn.disabled = true;
+            btn.textContent = '重置中...';
+
+            try {
+                const resp = await fetch(`${API_BASE}/setup/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        clear_database: clearDB,
+                        clear_storage: clearStorage
+                    })
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    showToast('重置成功，即将跳转到初始化页面...', 'success');
+                    localStorage.removeItem('token');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showToast(data.error || '重置失败', 'error');
+                    btn.textContent = '确认重置';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast('网络错误: ' + err.message, 'error');
+                btn.textContent = '确认重置';
+                btn.disabled = false;
+            }
+            closeModal('reset-confirm-modal');
+        }
+    </script>
+</body>
+</html>

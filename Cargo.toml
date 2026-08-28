@@ -1,0 +1,58 @@
+[package]
+name = "music-service"
+version = "1.0.0"
+edition = "2021"
+description = "个人音乐服务端 - Rust 重写版"
+
+[dependencies]
+# Web framework
+axum = { version = "0.8", features = ["macros", "multipart", "ws"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "fs"] }
+tokio = { version = "1", features = ["full"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "sqlite", "mysql", "chrono", "macros"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Authentication
+jsonwebtoken = "9"
+bcrypt = "0.16"
+
+# WebSocket
+futures = "0.3"
+
+# Encoding
+base64 = "0.22"
+hex = "0.4"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# ID generation
+uuid = { version = "1", features = ["v4"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Configuration (TOML)
+toml = "0.8"
+
+# MIME types
+mime_guess = "2"
+
+# OSS - HTTP requests for Aliyun OSS and general HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# HMAC for OSS signing
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+md-5 = "0.10"
+
+# Async trait
+async-trait = "0.1"

@@ -1,0 +1,29 @@
+/target
+*.exe
+*.test
+
+# Environment / Config
+.env
+config.toml
+
+# Uploaded files
+uploads/
+
+# Database
+data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & dev artifacts
+*.log
+build-errors*.txt
+.initialized
+tmp/
